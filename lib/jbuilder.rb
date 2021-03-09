@@ -8,6 +8,7 @@ require 'ostruct'
 class Jbuilder
   @@key_formatter = nil
   @@ignore_nil    = false
+  @@replace_null  = false
 
   def initialize(options = {})
     @attributes = {}
@@ -15,6 +16,7 @@ class Jbuilder
     @key_formatter = options.fetch(:key_formatter){ @@key_formatter ? @@key_formatter.clone : nil}
     @ignore_nil = options.fetch(:ignore_nil, @@ignore_nil)
 
+    @replace_null = options.fetch(:replace_null, @@replace_null)
     yield self if ::Kernel.block_given?
   end
 
@@ -128,6 +130,29 @@ class Jbuilder
   # Same as instance method ignore_nil! except sets the default.
   def self.ignore_nil(value = true)
     @@ignore_nil = value
+  end
+
+  # If you want to replace null values with empty string to your JSON hash. You can
+  # use the method.
+  #
+  # Example:
+  #   json.replace_null! false
+  #   json.id User.new.id
+  #
+  #   { "id": null }
+  #
+  #   json.replace_null!
+  #   json.id User.new.id
+  #
+  #   { "id": "" }
+  #
+  def replace_null!(value = true)
+    @replace_null = value
+  end
+
+  # Same as instance method ignore_nil! except sets the default.
+  def self.replace_null(value = true)
+    @@replace_null = value
   end
 
   # Turns the current element into an array and yields a builder to add a hash.
@@ -290,6 +315,7 @@ class Jbuilder
     raise ArrayError.build(key) if ::Array === @attributes
     return if @ignore_nil && value.nil? or _blank?(value)
     @attributes = {} if _blank?
+    value = "" if @replace_null && !@ignore_nil && value.blank?
     @attributes[_key(key)] = value
   end
 
