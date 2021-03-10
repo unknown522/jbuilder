@@ -315,7 +315,7 @@ class Jbuilder
     raise ArrayError.build(key) if ::Array === @attributes
     return if @ignore_nil && value.nil? or _blank?(value)
     @attributes = {} if _blank?
-    value = "" if @replace_null && !@ignore_nil && value.blank?
+    value = "" if @replace_null && !@ignore_nil && value.nil?
     @attributes[_key(key)] = value
   end
 
